@@ -154,9 +154,6 @@ class RandomConfigSpaceSearcher(ConfigSpaceSearcher):
             validity = np.apply_along_axis(self._is_valid, axis=1, arr=temp_random_sample)
             filtered_samples = temp_random_sample[validity]
 
-            if coalition.any():
-                filtered_samples = []
-
             if len(filtered_samples) < 0.05 * len(temp_random_sample):  # pragma: no cover
                 logger.warning(
                     "WARNING: Due to blinding less than 5% of the samples in the random search remain valid. "
