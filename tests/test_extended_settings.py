@@ -79,3 +79,10 @@ def test_tunability_with_conditions(simple_cond_base_et: ExplanationTask) -> Non
     hypershap = HyperSHAP(simple_cond_base_et)
     iv = hypershap.tunability(simple_cond_base_et.config_space.get_default_configuration())
     assert iv is not None, "Interaction values should not be none."
+
+
+def test_tunability_with_activation_structures(simple_act_base_et: ExplanationTask) -> None:
+    """Test the tunability task with a configuration space that has conditions."""
+    hypershap = HyperSHAP(simple_act_base_et)
+    iv = hypershap.tunability(simple_act_base_et.config_space.get_default_configuration())
+    assert iv is not None, "Interaction values should not be none."
