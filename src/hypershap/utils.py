@@ -217,7 +217,7 @@ class RandomConfigSpaceSearcher(ConfigSpaceSearcher):
                 "Could not ensure monotonicity as none of the coalitions with one player less has been cached so far.",
             )
 
-        if value < monotone_value:
+        if value < monotone_value:  # pragma: no cover
             logger.debug(
                 "Ensured monotonicity with a sub-coalition's value. Increased the value of the current coalition from %s to %s.",
                 value,

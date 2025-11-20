@@ -12,6 +12,8 @@ if TYPE_CHECKING:
     from hypershap import ExplanationTask
     from tests.fixtures.simple_setup import SimpleBlackboxFunction
 
+from ConfigSpace import Configuration
+
 from hypershap.task import BaselineExplanationTask
 from hypershap.utils import Aggregation, RandomConfigSpaceSearcher, evaluate_aggregation
 
@@ -144,3 +146,31 @@ def test_evaluate_aggregation() -> None:
     assert evaluate_aggregation(Aggregation.MAX, vals) == AGG_LIST[2]
     assert evaluate_aggregation(Aggregation.AVG, vals) == np.array(AGG_LIST).mean()
     assert abs(evaluate_aggregation(Aggregation.VAR, vals) - np.array(AGG_LIST).var()) < EPSILON
+
+
+def test_fallback_unfulfilled_conditions(simple_act_base_et: ExplanationTask) -> None:
+    """Test the fallback strategy when no configurations are left in random sample after filtering for conditions."""
+    bet = BaselineExplanationTask(
+        simple_act_base_et.config_space,
+        simple_act_base_et.surrogate_model,
+        simple_act_base_et.config_space.get_default_configuration(),
+    )
+    rcss = RandomConfigSpaceSearcher(bet)
+    rcss.random_sample = np.array([
+        Configuration(
+            configuration_space=simple_act_base_et.config_space,
+            values={
+                "a": 0.4,
+                "b": 0.1,
+            },
+        ).get_array(),
+        Configuration(
+            configuration_space=simple_act_base_et.config_space,
+            values={
+                "a": 0.5,
+                "b": 0.1,
+            },
+        ).get_array(),
+    ])
+    value = rcss.search(np.array([False, True]))
+    assert value is not None
