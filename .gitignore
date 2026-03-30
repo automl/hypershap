@@ -212,3 +212,4 @@ __marimo__/
 
 # IDE project files
 .idea
+.DS_Store
