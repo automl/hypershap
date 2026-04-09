@@ -1,3 +1,8 @@
+# v0.0.7
+
+## Features
+- Added interface for loading optuna studies
+
 # v0.0.6
 
 ## Improvements
