@@ -8,6 +8,7 @@ Shapley value and its generalization to interactions.
 from __future__ import annotations
 
 from .hypershap import HyperSHAP
+from .optuna_task import from_optuna_study
 from .task import ExplanationTask
 from .utils import ConfigSpaceSearcher
 
@@ -15,4 +16,5 @@ __all__ = [
     "ConfigSpaceSearcher",
     "ExplanationTask",
     "HyperSHAP",
+    "from_optuna_study",
 ]

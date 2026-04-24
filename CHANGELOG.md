@@ -1,3 +1,14 @@
+# v0.0.7
+
+## Features
+- Added interface for loading optuna studies
+
+# v0.0.6
+
+## Improvements
+- Added fallback for configuration spaces with conditions resulting in all configurations being filtered out.
+- Added caching and a function in RandomConfigSpaceSearcher to ensure monotonicity of the value function.
+
 # v0.0.5
 
 ## Features

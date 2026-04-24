@@ -30,6 +30,10 @@ Homepage = "https://automl.github.io/hypershap/"
 Repository = "https://github.com/automl/hypershap"
 Documentation = "https://automl.github.io/hypershap/"
 
+[project.optional-dependencies]
+optuna = ["optuna>=3.0"]
+examples = ["notebook>=6.5.7"]
+
 [dependency-groups]
 test = [
     "pytest>=8.3.5",
@@ -118,6 +122,11 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.format]
 preview = true
+
+[tool.deptry.per_rule_ignores]
+# notebook is an optional extra for running example notebooks; deptry cannot detect
+# implicit usage in .ipynb files so we suppress the false-positive DEP002 here.
+DEP002 = ["notebook"]
 
 [tool.coverage.report]
 skip_empty = true
