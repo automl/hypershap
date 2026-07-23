@@ -139,6 +139,12 @@ class RandomConfigSpaceSearcher(ConfigSpaceSearcher):
             The aggregated performance value based on the search results.
 
         """
+        coalition_set = frozenset(np.flatnonzero(coalition))
+        key = (coalition_set, self.mode)
+
+        if key in self.coalition_cache:
+            return self.coalition_cache[key]
+
         # copy the sampled configurations
         temp_random_sample = self.random_sample.copy()
 
@@ -165,4 +171,21 @@ class RandomConfigSpaceSearcher(ConfigSpaceSearcher):
         else:
             vals: np.ndarray = np.array(self.explanation_task.get_single_surrogate_model().evaluate(temp_random_sample))
 
-        return evaluate_aggregation(self.mode, vals)
+        raw_value = evaluate_aggregation(self.mode, vals)
+        if self.mode not in (Aggregation.MAX, Aggregation.MIN):
+            self.coalition_cache[key] = raw_value
+            return raw_value
+
+        # enforce monotonicity across subsets
+        aggregate_op = max if self.mode == Aggregation.MAX else min
+        value = raw_value
+        # Update value based on cached subset values
+        for (cached_set, cached_mode), cached_val in self.coalition_cache.items():
+            if cached_mode == self.mode and cached_set < coalition_set:
+                value = aggregate_op(value, cached_val)
+        self.coalition_cache[key] = value
+        # retroactively update any supersets cached before their subsets
+        for (cached_set, cached_mode), cached_val in self.coalition_cache.items():
+            if cached_mode == self.mode and coalition_set < cached_set:
+                self.coalition_cache[(cached_set, cached_mode)] = aggregate_op(cached_val, value)
+        return value
