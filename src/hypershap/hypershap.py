@@ -138,6 +138,15 @@ class HyperSHAP:
             # approximate interaction values with the given index and order
             interaction_values = approx(budget=self.approximation_budget, game=game)
 
+        # The approximator's unconstrained regression can produce negative Shapley values.
+        # Clip interaction values to be non-negative
+        base_game = game.base_game if isinstance(game, MultiDataHPIGame) else game
+        if isinstance(base_game, TunabilityGame):
+            for key, idx in interaction_values.interaction_lookup.items():
+                if key and interaction_values.values[idx] < 0.0:
+                    interaction_values.values[idx] = 0.0
+                    interaction_values.interactions[key] = 0.0
+
         # cache current interaction values for plotting shortcuts
         self.last_interaction_values = interaction_values
 
