@@ -18,6 +18,7 @@ from hypershap.utils import Aggregation, RandomConfigSpaceSearcher, evaluate_agg
 DEFAULT_MODE = Aggregation.MAX
 N_SAMPLES = 50_000
 EPSILON = 0.2
+FLOAT_TOLERANCE = 1e-10
 
 AGG_LIST = [0.1, 0.2, 0.6]
 
@@ -134,6 +135,54 @@ def test_baseline_coalition_var_search(
     assert abs(res - expected_var < EPSILON), (
         "If no hyperparameter is activated for searching, the variance should be 0."
     )
+
+
+def test_coalition_cache_monotonicity(
+    simple_base_et: ExplanationTask,
+) -> None:
+    """Test that cached subset values enforce monotonicity."""
+    baseline_et = BaselineExplanationTask(
+        simple_base_et.config_space,
+        simple_base_et.surrogate_model,
+        baseline_config=simple_base_et.config_space.get_default_configuration(),
+    )
+    cs = RandomConfigSpaceSearcher(
+        explanation_task=baseline_et,
+        mode=Aggregation.MAX,
+        n_samples=N_SAMPLES,
+    )
+
+    # Evaluate singletons first so they get cached
+    v0 = cs.search(np.array([True, False]))
+    v1 = cs.search(np.array([False, True]))
+
+    # Grand coalition must be >= both singletons via cache enforcement
+    v_grand = cs.search(np.array([True, True]))
+    assert v_grand >= v0 - FLOAT_TOLERANCE, f"Grand coalition {v_grand} should be >= singleton 0 {v0}"
+    assert v_grand >= v1 - FLOAT_TOLERANCE, f"Grand coalition {v_grand} should be >= singleton 1 {v1}"
+
+
+def test_coalition_cache_mode_isolation(
+    simple_base_et: ExplanationTask,
+) -> None:
+    """Test that different aggregation modes produce independent cache entries."""
+    baseline_et = BaselineExplanationTask(
+        simple_base_et.config_space,
+        simple_base_et.surrogate_model,
+        baseline_config=simple_base_et.config_space.get_default_configuration(),
+    )
+    cs = RandomConfigSpaceSearcher(
+        explanation_task=baseline_et,
+        mode=Aggregation.MAX,
+        n_samples=N_SAMPLES,
+    )
+
+    grand_mask = np.array([True, True])
+    v_max = cs.search(grand_mask)
+    cs.mode = Aggregation.MIN
+    v_min = cs.search(grand_mask)
+
+    assert abs(v_max - v_min) > FLOAT_TOLERANCE, "MAX and MIN grand coalition values should differ."
 
 
 def test_evaluate_aggregation() -> None:

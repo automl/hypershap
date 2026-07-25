@@ -34,6 +34,17 @@ def test_large_ablation_kernelshap(large_base_et: ExplanationTask) -> None:
     hypershap.ablation(comparison, baseline, index="k-SII")
 
 
+def test_large_tunability_non_negative(large_base_et: ExplanationTask) -> None:
+    """All Shapley values should be >= 0."""
+    hypershap = HyperSHAP(explanation_task=large_base_et, approximation_budget=2**5)
+    iv = hypershap.tunability(
+        baseline_config=large_base_et.config_space.get_default_configuration(),
+        order=1,
+    )
+    neg = [(k, v) for k, v in iv.dict_values.items() if k and v < 0]
+    assert not neg, f"Found {len(neg)} negative Shapley values: {neg}"
+
+
 def test_multi_data_ablation(
     multi_data_baseline_config: Configuration,
     multi_data_config_space: ConfigurationSpace,
